@@ -1,23 +1,24 @@
-#choix du répertoire
-setwd("/JLA/Sauvegarde/Dropbox/Santé/Raw_Data")
+#Library utilisée
+library(dplyr)
+
+#choix du répertoire pour le changement des csv MFP
+setwd("/JLA/Sauvegarde/Dropbox/Santé/Raw_Data/Export_MFP/")
+file_list <- list.files()
+MFP <- do.call("rbind",lapply(file_list, FUN=function(files){read.csv(files)}))
+
+#Modification du format de date dans les fichiers MyFitnessPal
+Final_MFP  <- mutate(MFP, Date  = as.Date(Date, "%d-%b-%y"))
+
+#choix du répertoire pour la suite
+setwd("/JLA/Sauvegarde/Dropbox/Santé/Raw_Data/")
 
 #Systeme de location pour le format des dates
 lct <- Sys.getlocale("LC_TIME"); Sys.setlocale("LC_TIME", "C")
-
-#Library utilisée
-library(dplyr)
 
 #Ouverture des fichiers sources Jawbone et Withings
 acti  <- read.csv("./Withings - Activité Julien.csv")
 poids  <- read.csv("./Withings - Poids Julien.csv")
 Jawbone  <- read.csv("./Jawbone.csv")
-
-#Ouverture du dossier et concatenation des fichiers MFP
-file_list <- list.files("./Export_MFP/")
-MFP <- do.call("rbind",lapply(file_list, FUN=function(files){read.csv(files)}))
-
-#Modification du format de date dans les fichiers MyFitnessPal
-Final_MFP  <- mutate(MFP, Date  = as.Date(Date, "%d-%b-%y"))
 
 #Modification du fichier d'historique Jawbone
 JB  <- select(Jawbone, DATE, m_calories, m_steps, m_distance, weight)
@@ -47,6 +48,7 @@ Withing_JB  <- distinct(Withing_JB, Date)
 
 # jointure avec le fichier des calories
 Global  <-  merge(Withing_JB, Final_MFP, all = TRUE, sort = TRUE)
+View(Global)
 
-#Export au format CSV
+#Export au format CSV et visualisation des résultats
 write.table(Global, "data_health.csv", row.names=FALSE, sep=",",dec=".", na=" ")
